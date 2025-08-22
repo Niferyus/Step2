@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Infrastructure.Persistence
+namespace Application.Interfaces
 {
-    public class DbContext
+    public interface IUnitOfWork
     {
+        Task<int> SaveChanges(CancellationToken ct = default);
     }
 }

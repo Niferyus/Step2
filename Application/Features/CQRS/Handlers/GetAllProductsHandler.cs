@@ -21,7 +21,7 @@ namespace Application.Features.CQRS.Handlers
         }
         public async Task<List<ProductListDto>> Handle(GetAllProductQuery request, CancellationToken cancellationToken)
         {
-            var items = await _productRepository.GetAll();
+            var items = await _productRepository.GetAll(cancellationToken);
             return items.Select(p => new ProductListDto
             {
                 Name = p.Name,

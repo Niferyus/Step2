@@ -10,17 +10,19 @@ using System.Threading.Tasks;
 
 namespace Application.Features.CQRS.Handlers
 {
-    public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand, ProductDto>
+    public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand, UpdateProductDto>
     {
         private readonly IProductRepository _productRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public UpdateProductCommandHandler(IProductRepository productRepository)
+        public UpdateProductCommandHandler(IProductRepository productRepository, IUnitOfWork unitOfWork)
         {
             _productRepository = productRepository;
+            _unitOfWork = unitOfWork;
         }
-        public async Task<ProductDto> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
+        public async Task<UpdateProductDto> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
         {
-            var item = await _productRepository.GetById(request.Id)
+            var item = await _productRepository.GetById(request.Id, cancellationToken)
                 ?? throw new KeyNotFoundException("Product not found.");
 
             item.Name = request.Name;
@@ -28,8 +30,18 @@ namespace Application.Features.CQRS.Handlers
             item.Stock = request.Stock;
             item.ImageUrl = request.ImageUrl;
             item.Description = request.Description;
-            _productRepository.Update(item);
-            // save changes to the database
+            await _productRepository.Update(item, cancellationToken);
+            await _unitOfWork.SaveChanges(cancellationToken);
+            return new UpdateProductDto
+            {
+                Id = item.Id,
+                Name = item.Name,
+                Price = item.Price,
+                Stock = item.Stock,
+                ImageUrl = item.ImageUrl,
+                Description = item.Description
+            };
+            
         }
     }
 }

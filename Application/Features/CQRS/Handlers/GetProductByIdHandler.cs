@@ -20,7 +20,7 @@ namespace Application.Features.CQRS.Handlers
         }
         public async Task<ProductDto> Handle(GetProductByIdQuery request, CancellationToken cancellationToken)
         {
-           var item = await _productRepository.GetById(request.Id);
+           var item = await _productRepository.GetById(request.Id, cancellationToken);
             return new ProductDto
             {
                 Name = item.Name,

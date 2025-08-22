@@ -11,15 +11,17 @@ using System.Threading.Tasks;
 
 namespace Application.Features.CQRS.Handlers
 {
-    public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand, ProductDto>
+    public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand, CreateProductDto>
     {
         private readonly IProductRepository _productRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public CreateProductCommandHandler(IProductRepository productRepository)
+        public CreateProductCommandHandler(IProductRepository productRepository, IUnitOfWork unitOfWork)
         {
             _productRepository = productRepository;
+            _unitOfWork = unitOfWork;
         }
-        public Task<ProductDto> Handle(CreateProductCommand request, CancellationToken cancellationToken)
+        public async Task<CreateProductDto> Handle(CreateProductCommand request, CancellationToken cancellationToken)
         {
             var item = new Product
             {
@@ -30,9 +32,17 @@ namespace Application.Features.CQRS.Handlers
                 Description = request.Description
             };
 
-            _productRepository.Create(item);
-            // save changes to the database
+            await _productRepository.Create(item, cancellationToken);
+            await _unitOfWork.SaveChanges(cancellationToken);
 
+            return new CreateProductDto
+            {
+                Name = item.Name,
+                Price = item.Price,
+                Stock = item.Stock,
+                ImageUrl = item.ImageUrl,
+                Description = item.Description
+            };
         }
     }
 }

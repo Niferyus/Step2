@@ -5,10 +5,12 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MediatR;
+using Application.Dtos;
 
 namespace Application.Features.CQRS.Commands
 {
-    public class CreateProductCommand
+    public class CreateProductCommand : IRequest<CreateProductDto>
     {
         public string Name { get; set; }
         public decimal Price { get; set; }

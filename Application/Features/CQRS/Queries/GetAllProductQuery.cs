@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using Application.Dtos;
+using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Application.Features.CQRS.Queries
 {
-    public class GetAllProductQuery : IRequest<List<ProductResponse>>;
+    public class GetAllProductQuery : IRequest<List<ProductListDto>>
     {
     }
 }

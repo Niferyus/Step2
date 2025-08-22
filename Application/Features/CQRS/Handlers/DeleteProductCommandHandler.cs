@@ -19,12 +19,12 @@ namespace Application.Features.CQRS.Handlers
         }
         public async Task Handle(DeleteProductCommand request, CancellationToken cancellationToken)
         {
-            var item = await _productRepository.GetById(request.Id);
+            var item = await _productRepository.GetById(request.Id, cancellationToken);
             if (item == null)
             {
                 throw new KeyNotFoundException("Product not found.");
             }
-            await _productRepository.Delete(item);
+            await _productRepository.Delete(item, cancellationToken);
         }
     }
 }
