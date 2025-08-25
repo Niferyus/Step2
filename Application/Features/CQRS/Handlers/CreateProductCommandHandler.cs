@@ -15,10 +15,12 @@ namespace Application.Features.CQRS.Handlers
     {
         private readonly IProductRepository _productRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IRedisService _redisService;
 
-        public CreateProductCommandHandler(IProductRepository productRepository, IUnitOfWork unitOfWork)
+        public CreateProductCommandHandler(IProductRepository productRepository, IUnitOfWork unitOfWork, IRedisService redisService)
         {
             _productRepository = productRepository;
+            _redisService = redisService;
             _unitOfWork = unitOfWork;
         }
         public async Task<CreateProductDto> Handle(CreateProductCommand request, CancellationToken cancellationToken)
@@ -34,6 +36,8 @@ namespace Application.Features.CQRS.Handlers
 
             await _productRepository.Create(item, cancellationToken);
             await _unitOfWork.SaveChanges(cancellationToken);
+
+            await _redisService.RemoveByPatternAsync("product:*", cancellationToken);
 
             return new CreateProductDto
             {

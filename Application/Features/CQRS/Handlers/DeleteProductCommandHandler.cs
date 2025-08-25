@@ -12,10 +12,14 @@ namespace Application.Features.CQRS.Handlers
     public class DeleteProductCommandHandler : IRequestHandler<DeleteProductCommand>
     {
         private readonly IProductRepository _productRepository;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IRedisService _redisService;
 
-        public DeleteProductCommandHandler(IProductRepository productRepository)
+        public DeleteProductCommandHandler(IProductRepository productRepository, IUnitOfWork unitOfWork, IRedisService redisService)
         {
             _productRepository = productRepository;
+            _unitOfWork = unitOfWork;
+            _redisService = redisService;
         }
         public async Task Handle(DeleteProductCommand request, CancellationToken cancellationToken)
         {
@@ -25,6 +29,9 @@ namespace Application.Features.CQRS.Handlers
                 throw new KeyNotFoundException("Product not found.");
             }
             await _productRepository.Delete(item, cancellationToken);
+            await _unitOfWork.SaveChanges(cancellationToken);
+
+            await _redisService.RemoveByPatternAsync("product:*", cancellationToken);
         }
     }
 }

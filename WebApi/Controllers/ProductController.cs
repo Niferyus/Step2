@@ -20,7 +20,9 @@ namespace WebApi.Controllers
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
-            => Ok(await _mediator.Send(new GetAllProductQuery()));
+        {
+            return Ok(await _mediator.Send(new GetAllProductQuery()));
+        }
 
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
@@ -31,20 +33,38 @@ namespace WebApi.Controllers
 
         [HttpPost]
         public async Task<IActionResult> Create(CreateProductDto request)
-            => Ok(await _mediator.Send(new CreateProductCommand()));
-
-        [HttpPut]
-        public async Task<IActionResult> Update(UpdateProductCommand request)
         {
-            await _mediator.Send(new UpdateProductCommand());
-            return NoContent();
+            var command = new CreateProductCommand
+            {
+                Name = request.Name,
+                Price = request.Price,
+                Stock = request.Stock,
+                ImageUrl = request.ImageUrl,
+                Description = request.Description
+            };
+            return Ok(await _mediator.Send(command));
         }
 
-        [HttpDelete("{id:int}")]
+        [HttpPut]
+        public async Task<IActionResult> Update(UpdateProductDto request)
+        {
+            var command = new UpdateProductCommand
+            {
+                Id = request.Id,
+                Name = request.Name,
+                Price = request.Price,
+                Stock = request.Stock,
+                ImageUrl = request.ImageUrl,
+                Description = request.Description
+            };
+            return Ok(await _mediator.Send(command));
+        }
+
+        [HttpDelete]
         public async Task<IActionResult> Delete(int id)
         {
             await _mediator.Send(new DeleteProductCommand(id));
-            return NoContent();
+            return Ok(new { Message = "Ürün başarıyla silindi" });
         }
     }
 }

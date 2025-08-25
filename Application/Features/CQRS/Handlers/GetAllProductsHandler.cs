@@ -14,15 +14,24 @@ namespace Application.Features.CQRS.Handlers
     public class GetAllProductsHandler : IRequestHandler<GetAllProductQuery, List<ProductListDto>>
     {
         private readonly IProductRepository _productRepository;
+        private readonly IRedisService _redisService;
+        private const string PRODUCTS_CACHE_KEY = "product:all";
 
-        public GetAllProductsHandler(IProductRepository productRepository) 
-        { 
+        public GetAllProductsHandler(IProductRepository productRepository, IRedisService redisService)
+        {
             _productRepository = productRepository;
+            _redisService = redisService;
         }
         public async Task<List<ProductListDto>> Handle(GetAllProductQuery request, CancellationToken cancellationToken)
         {
+            var cachedProducts = await _redisService.Get<List<ProductListDto>>(PRODUCTS_CACHE_KEY, cancellationToken);
+            if (cachedProducts != null && cachedProducts.Count() != 0)
+            {
+                return cachedProducts;
+            }
+
             var items = await _productRepository.GetAll(cancellationToken);
-            return items.Select(p => new ProductListDto
+            var productList = items.Select(p => new ProductListDto
             {
                 Name = p.Name,
                 Price = p.Price,
@@ -30,6 +39,10 @@ namespace Application.Features.CQRS.Handlers
                 ImageUrl = p.ImageUrl[0],
                 Stock = p.Stock,
             }).ToList();
+
+            await _redisService.SetAsync(PRODUCTS_CACHE_KEY, productList, TimeSpan.FromMinutes(15), cancellationToken);
+
+            return productList;
         }
     }
 }

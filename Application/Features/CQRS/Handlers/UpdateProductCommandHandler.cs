@@ -14,11 +14,13 @@ namespace Application.Features.CQRS.Handlers
     {
         private readonly IProductRepository _productRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IRedisService _redisService;
 
-        public UpdateProductCommandHandler(IProductRepository productRepository, IUnitOfWork unitOfWork)
+        public UpdateProductCommandHandler(IProductRepository productRepository, IUnitOfWork unitOfWork, IRedisService redisService)
         {
             _productRepository = productRepository;
             _unitOfWork = unitOfWork;
+            _redisService = redisService;
         }
         public async Task<UpdateProductDto> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
         {
@@ -32,6 +34,9 @@ namespace Application.Features.CQRS.Handlers
             item.Description = request.Description;
             await _productRepository.Update(item, cancellationToken);
             await _unitOfWork.SaveChanges(cancellationToken);
+
+            await _redisService.RemoveByPatternAsync("product:*", cancellationToken);
+
             return new UpdateProductDto
             {
                 Id = item.Id,
@@ -41,7 +46,7 @@ namespace Application.Features.CQRS.Handlers
                 ImageUrl = item.ImageUrl,
                 Description = item.Description
             };
-            
+
         }
     }
 }
